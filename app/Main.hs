@@ -3,6 +3,9 @@ module Main where
 
 import Control.Lens
 import Brick
+import Brick.BChan
+import Control.Concurrent
+import Graphics.Vty
 
 import Types
 import UI
@@ -23,7 +26,23 @@ app = App
   }
 
 runApp :: IO GameState
-runApp = defaultMain app initialGS
- where 
+runApp = do 
+  let builder = mkVty defaultConfig
+  initialVty <- builder
+  bChan <- newBChan 200
+  _ <- forkIO (tick bChan)
+  customMain initialVty builder (Just bChan) app initialGS
+  where 
+   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0
+
+tick :: BChan () -> IO ()
+tick bChan = do
+  threadDelay 90000
+  writeBChan bChan ()
+  tick bChan
+
+runApp' :: IO GameState
+runApp' = defaultMain app initialGS
+  where 
    initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0
 

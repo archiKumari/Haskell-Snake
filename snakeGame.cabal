@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4abc4ec48a3a3879c231334ea7bbf0aed4c1e1b69e7abf0c2cb06af78f27bf30
+-- hash: 31f892abaf4bb596dee93e05d1f61e92d59ed7b1e1d5a80fef852e4a9a57dc0c
 
 name:           snakeGame
 version:        0.1.0.0
@@ -28,7 +28,6 @@ source-repository head
 library
   exposed-modules:
       GameControls
-      Lib
       Movement
       Types
       UI
