@@ -33,16 +33,16 @@ runApp = do
   _ <- forkIO (tick bChan)
   customMain initialVty builder (Just bChan) app initialGS
   where 
-   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0
+   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0 Normal
 
 tick :: BChan () -> IO ()
 tick bChan = do
-  threadDelay 90000
+  threadDelay 100000
   writeBChan bChan ()
   tick bChan
 
-runApp' :: IO GameState
+{-runApp' :: IO GameState
 runApp' = defaultMain app initialGS
   where 
-   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0
+   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0-}
 

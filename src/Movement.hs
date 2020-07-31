@@ -10,23 +10,33 @@ import Control.Monad.IO.Class
 
 gameHandler :: GameState -> EventM n (Next GameState)
 gameHandler gs = case gs ^. gsSnakeL ^. sHeadL of
-  pos | pos == gs ^. gsFoodPosL -> do
-    let snHead   = gs ^. gsSnakeL ^. sHeadL
-        snTail   = gs ^. gsSnakeL ^. sTailL
-        snDir = gs ^. gsSnakeL ^. sDirL
-        foodPos  = gs ^. gsFoodPosL
-        gridSize = gs ^. gsSizeL
-        newSnake = Snake foodPos (snHead : snTail) snDir
-    newFoodPos <- liftIO $ genFoodPos gridSize
-    continue $ gs & (gsSnakeL .~ newSnake).(gsFoodPosL .~ newFoodPos)
+  pos | pos == gs ^. gsFoodPosL -> foodPosHandler gs
+  pos | pos `elem` drop 1 (gs ^. gsSnakeL ^. sTailL) -> movementHandler gs 
+  (Cord x y) | x == fst (gs ^. gsSizeL) || x < 0 -> movementHandler gs
+  (Cord x y) | y == snd (gs ^. gsSizeL) || y < 0 -> movementHandler gs 
   anythingElse -> do  
     let snHead = gs ^. gsSnakeL ^. sHeadL
         snTail  = gs ^. gsSnakeL ^. sTailL
         snDir = gs ^. gsSnakeL ^. sDirL
         newSHead = getNextCord snHead snDir
-        newSnake = Snake newSHead (snHead:(init snTail)) snDir
+        newSnake = Snake newSHead (init $ snHead:snTail) snDir
     continue $ gs & gsSnakeL .~ newSnake 
-    
+
+foodPosHandler :: GameState -> EventM n (Next GameState)
+foodPosHandler gs = do
+  let snHead   = gs ^. gsSnakeL ^. sHeadL
+      snTail   = gs ^. gsSnakeL ^. sTailL
+      snDir = gs ^. gsSnakeL ^. sDirL
+      foodPos  = gs ^. gsFoodPosL
+      gridSize = gs ^. gsSizeL
+      newSnake = Snake foodPos (snHead : snTail) snDir
+      snakeCords = snHead : snTail
+  newFoodPos <- liftIO $ genFoodPos gridSize snakeCords
+  continue $ gs & (gsSnakeL .~ newSnake).(gsFoodPosL .~ newFoodPos)
+
+movementHandler :: GameState -> EventM n (Next GameState)
+movementHandler = halt
+
 getNextCord :: Cordinate -> DIRECTION -> Cordinate
 getNextCord (Cord x y) dir = case dir of
     UP    -> Cord (x+1) y
@@ -40,8 +50,9 @@ turn dir gs = gs & gsSnakeL %~ setSnakeDir dir
 setSnakeDir :: DIRECTION -> Snake -> Snake
 setSnakeDir d s= s & sDirL .~ d
 
-genFoodPos :: (Int,Int) -> IO Cordinate
-genFoodPos (row,col) = do
+genFoodPos :: GameSize -> [Cordinate] -> IO Cordinate
+genFoodPos (row,col) snakeCords = do
   x <- generate $ choose (0,row-1)
   y <- generate $ choose (0,col-1)
-  return $ Cord y x
+  let cord = Cord y x
+  if Cord y x `elem` snakeCords then genFoodPos (row,col) snakeCords else return (Cord y x)

@@ -13,7 +13,7 @@ data Snake = Snake
 
 data GameState = GameState
   { gsSnake :: Snake
-  , gsSize :: (Int,Int)
+  , gsSize :: GameSize
   , gsFoodPos :: Cordinate
   , gsFoodCount :: Int
   , gsCoinCount :: Int
@@ -21,6 +21,7 @@ data GameState = GameState
   , gsScore :: Int
   , gsHighScore :: Int
   , gsLevel :: Int
+  , gsMode :: Mode
   }
   deriving (Eq,Ord)
 
@@ -32,6 +33,11 @@ data Cordinate = Cord
 
 data DIRECTION = UP | DOWN | RIGHT | LEFT
   deriving (Eq,Ord)
+
+data Mode = Normal | Infinite | Obstacle
+  deriving (Show,Eq,Ord)
+
+type GameSize = (Int,Int)
 
 suffixLenses ''GameState
 suffixLenses ''Snake

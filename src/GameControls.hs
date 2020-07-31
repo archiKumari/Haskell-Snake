@@ -13,10 +13,9 @@ import Movement
 
 handleGs :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 handleGs gs (VtyEvent (EvKey (KChar 'q') [])) = halt gs
-handleGs gs (VtyEvent (EvKey (KChar ' ') [])) = gameHandler gs
 handleGs gs (VtyEvent (EvKey KUp [])) =    continue $ turn UP gs
 handleGs gs (VtyEvent (EvKey KRight [])) = continue $ turn RIGHT gs 
 handleGs gs (VtyEvent (EvKey KDown [])) =  continue $ turn DOWN gs
 handleGs gs (VtyEvent (EvKey KLeft [])) =  continue $ turn LEFT gs
-handleGs gs (AppEvent ()) =  gameHandler gs
+handleGs gs (AppEvent ()) = gameHandler gs
 handleGs gs _ = continue gs
