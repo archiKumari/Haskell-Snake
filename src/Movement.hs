@@ -45,7 +45,20 @@ getNextCord (Cord x y) dir = case dir of
     LEFT  -> Cord x (y-1)
 
 turn :: DIRECTION -> GameState -> GameState 
-turn dir gs = gs & gsSnakeL %~ setSnakeDir dir 
+turn dir gs = gs & gsSnakeL %~ setSnakeDir dir'
+  where
+    oldDir = gs ^. gsSnakeL . sDirL
+    dir' =
+      if isOppositeDir dir oldDir 
+        then oldDir
+        else dir   
+
+isOppositeDir :: DIRECTION -> DIRECTION -> Bool
+isOppositeDir UP    DOWN  = True        
+isOppositeDir DOWN  UP    = True        
+isOppositeDir LEFT  RIGHT = True        
+isOppositeDir RIGHT LEFT  = True        
+isOppositeDir _     _     = False        
 
 setSnakeDir :: DIRECTION -> Snake -> Snake
 setSnakeDir d s= s & sDirL .~ d
