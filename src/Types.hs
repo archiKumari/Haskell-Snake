@@ -7,21 +7,21 @@ import Brick.Types
 data Snake = Snake 
   { sHead :: Cordinate
   , sTail :: [Cordinate]
-  , sDir :: DIRECTION
+  , sDir  :: DIRECTION
   }
   deriving (Eq,Ord)
 
 data GameState = GameState
-  { gsSnake :: Snake
-  , gsSize :: GameSize
-  , gsFoodPos :: Cordinate
-  , gsFoodCount :: Int
-  , gsCoinCount :: Int
-  , gsLifeCount :: Int
-  , gsScore :: Int
-  , gsHighScore :: Int
-  , gsLevel :: Int
-  , gsMode :: Mode
+  { gsSnake      :: Snake
+  , gsSize       :: GameSize
+  , gsFoodPos    :: Cordinate
+  , gsFoodCount  :: Int
+  , gsLifeCount  :: Int
+  , gsScore      :: Int
+  , gsHighScore  :: Int
+  , gsLevel      :: Int
+  , gsMode       :: Mode
+  , gsGameStatus :: GameStatus
   }
   deriving (Eq,Ord)
 
@@ -35,6 +35,9 @@ data DIRECTION = UP | DOWN | RIGHT | LEFT
   deriving (Eq,Ord)
 
 data Mode = Normal | Infinite | Obstacle
+  deriving (Show,Eq,Ord)
+
+data GameStatus = Initial | Playing | GameOver
   deriving (Show,Eq,Ord)
 
 type GameSize = (Int,Int)

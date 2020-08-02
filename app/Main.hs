@@ -18,31 +18,36 @@ main = do
 
 app :: App GameState () ()
 app = App
-  { appDraw = pure . drawGameObject 
+  { appDraw         = pure . renderGame 
   , appChooseCursor = neverShowCursor 
-  , appHandleEvent = handleGs
-  , appStartEvent = return
-  , appAttrMap = const theMap
+  , appHandleEvent  = handleGs
+  , appStartEvent   = return
+  , appAttrMap      = const theMap
   }
 
 runApp :: IO GameState
 runApp = do 
   let builder = mkVty defaultConfig
-  initialVty <- builder
-  bChan <- newBChan 200
-  _ <- forkIO (tick bChan)
+  initialVty  <- builder
+  bChan       <- newBChan 200
+  _           <- forkIO (tick bChan)
   customMain initialVty builder (Just bChan) app initialGS
   where 
-   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0 Normal
+   initialGS =
+     GameState 
+       (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) 
+       (20,20) 
+       (Cord 5 6) 
+       0 
+       3 
+       0 
+       0 
+       1 
+       Normal
+       Playing
 
 tick :: BChan () -> IO ()
 tick bChan = do
   threadDelay 100000
   writeBChan bChan ()
   tick bChan
-
-{-runApp' :: IO GameState
-runApp' = defaultMain app initialGS
-  where 
-   initialGS = GameState (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) (20,20) (Cord 5 6) 0 0 0 0 0 0-}
-
