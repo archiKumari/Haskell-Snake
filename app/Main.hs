@@ -20,7 +20,7 @@ app :: App GameState () ()
 app = App
   { appDraw         = pure . renderGame 
   , appChooseCursor = neverShowCursor 
-  , appHandleEvent  = handleGs
+  , appHandleEvent  = commandHandler
   , appStartEvent   = return
   , appAttrMap      = const theMap
   }
@@ -35,7 +35,7 @@ runApp = do
   where 
    initialGS =
      GameState 
-       (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) 
+       (Snake (Cord 1 7) [Cord 1 6,Cord 1 5] UP) 
        (20,20) 
        (Cord 5 6) 
        0 
@@ -44,7 +44,7 @@ runApp = do
        0 
        1 
        Normal
-       Playing
+       Initial --Playing
 
 tick :: BChan () -> IO ()
 tick bChan = do
