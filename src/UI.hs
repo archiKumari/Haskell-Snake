@@ -42,8 +42,8 @@ drawGameObject :: GameState -> Widget ()
 drawGameObject gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
     imageL .~ gameImg 
-      where gameImg = vertCat [mkScoreImg gs,mkGameImg gs] 
-        
+      where gameImg = vertCat [mkScoreImg gs,mkGameImg gs]
+            
 mkGameImg :: GameState -> Image
 mkGameImg gs = gameImg
       where gameImg = mkHorizBorder.vertCat $ fmap (mkRowImg gs) rowMap
@@ -64,14 +64,16 @@ mkRowImg gs cords = horizCat [border,rowImg,border]
 mkCellImg :: GameState -> Cordinate -> Image
 mkCellImg gs cord
   | cord == gsFoodPos gs = horizCat [charFill bgColor2 '🍉' 1 1]
-  | cord == sHead (gsSnake gs) = horizCat [charFill bgColor2 '@' 1 1, charFill bgColor2 ' ' 1 1]
-  | elem cord $ (sTail $ gsSnake gs) = horizCat [charFill bgColor2 '@' 1 1,charFill bgColor2 ' ' 1 1]
+  | cord == sHead (gsSnake gs) = string shColor "▦ " 
+  | elem cord $ (sTail $ gsSnake gs) = string stColor "▦ "
   | odd (xCord cord) && odd (yCord cord) = charFill bgColor1 ' ' 2 1
   | even (xCord cord) && even (yCord cord) = charFill bgColor1 ' ' 2 1
   | otherwise = charFill bgColor2 ' ' 2 1
   where 
     bgColor1 = getAttr "lightGreen" 
     bgColor2 = getAttr "darkGreen"  
+    shColor = flip V.withStyle V.bold $ V.red `on` rgbColor 55 209 52
+    stColor = flip V.withStyle V.bold $ V.black `on` rgbColor 55 209 52
 
 mkRowMap :: GameSize -> [[Cordinate]]
 mkRowMap (row,col) | row < 0 || col < 0 = []
@@ -83,7 +85,7 @@ mkScoreImg gs = scoreImg
         imgLine1  = horizCat [fCountImg,charFill brColor ' ' spCount1 1,lCountImg]
         imgLine2  = horizCat [sCountImg,charFill brColor ' ' spCount2 1 ,levelImg]
         fCountImg = horizCat [charFill brColor ' ' 2 1,charFill brColor '🍉' 1 1,string brColor (show foodCount)]
-        lCountImg = horizCat [charFill lColor '♥' lifeCount 1,charFill brColor ' ' 2 1] 
+        lCountImg = horizCat [charFill lColor '♥' lifeCount 1,charFill lColorDim '♥' (3-lifeCount) 1,charFill brColor ' ' 2 1] 
         sCountImg = horizCat [charFill brColor ' ' 2 1,charFill brColor '🌟' 1 1,string brColor (show score)]
         levelImg  = horizCat [string brColor (" Level : "++ show level),charFill brColor ' ' 2 1]
         foodCount = gs ^. gsFoodCountL
@@ -97,7 +99,8 @@ mkScoreImg gs = scoreImg
           _           -> 27 
         brColor = V.black `on` rgbColor 13 168 10
         lColor = flip V.withStyle V.bold $ V.red `on` rgbColor 13 168 10
-        
+        lColorDim = flip V.withStyle V.dim $ V.red `on` rgbColor 13 168 10        
+
 drawGameOver :: GameState ->  Widget ()
 drawGameOver gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
