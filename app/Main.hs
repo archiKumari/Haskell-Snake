@@ -43,8 +43,8 @@ runApp = do
        0 
        0 
        1 
-       Normal
-       Initial --Playing
+       Infinite
+       Initial 
 
 tick :: BChan () -> IO ()
 tick bChan = do

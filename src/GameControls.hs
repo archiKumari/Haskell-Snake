@@ -14,9 +14,9 @@ import Movement
 commandHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 commandHandler gs (VtyEvent (EvKey (KChar 'q') [])) = halt gs
 commandHandler gs event = case gs ^. gsGameStatusL of
-  Initial -> initialHandler gs event
-  Playing -> playingHandler gs event
-  Paused -> pausedHandler gs event
+  Initial  -> initialHandler  gs event
+  Paused   -> pausedHandler   gs event
+  Playing  -> playingHandler  gs event
   GameOver -> gameOverHandler gs event
   
 initialHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
@@ -28,12 +28,12 @@ playingHandler gs (VtyEvent (EvKey KUp [])) =    continue $ turn UP gs
 playingHandler gs (VtyEvent (EvKey KRight [])) = continue $ turn RIGHT gs 
 playingHandler gs (VtyEvent (EvKey KDown [])) =  continue $ turn DOWN gs
 playingHandler gs (VtyEvent (EvKey KLeft [])) =  continue $ turn LEFT gs
-playingHandler gs (VtyEvent (EvKey kEnter [])) = continue $ gs & (gsGameStatusL .~ Paused)
-playingHandler gs (AppEvent ()) = gameHandler gs
+playingHandler gs (VtyEvent (EvKey (KChar ' ') [])) = continue $ gs & (gsGameStatusL .~ Paused)
+playingHandler gs (AppEvent ()) = movementHandler gs
 playingHandler gs _ = continue gs
 
 pausedHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
-pausedHandler gs (VtyEvent (EvKey kEnter [])) = continue $ gs & (gsGameStatusL .~ Playing)
+pausedHandler gs (VtyEvent (EvKey (KChar ' ') [])) = continue $ gs & (gsGameStatusL .~ Playing)
 pausedHandler gs _ = continue gs
 
 gameOverHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
@@ -42,7 +42,7 @@ gameOverHandler gs _ = continue gs
 
 initialGS :: GameState
 initialGS = GameState 
-              (Snake (Cord 1 7) [Cord 1 6,Cord 1 5,Cord 1 4] UP) 
+              (Snake (Cord 1 7) [Cord 1 6,Cord 1 5] UP) 
               (20,20) 
               (Cord 5 6) 
               0 

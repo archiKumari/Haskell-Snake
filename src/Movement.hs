@@ -8,12 +8,12 @@ import Brick.Types
 import Brick
 import Control.Monad.IO.Class
 
-gameHandler :: GameState -> EventM n (Next GameState)
-gameHandler gs = case gs ^. (gsSnakeL . sHeadL) of
+movementHandler :: GameState -> EventM n (Next GameState)
+movementHandler gs = case gs ^. (gsSnakeL . sHeadL) of
   pos | pos == gs ^. gsFoodPosL                       -> foodPosHandler gs
-  pos | elem pos $ drop 1 (gs ^. (gsSnakeL . sTailL))  -> strikeHandler gs 
-  (Cord x y) | x == 1 + fst (gs ^. gsSizeL) || x < 0     -> strikeHandler gs
-  (Cord x y) | y == 1 + snd (gs ^. gsSizeL) || y < 0     -> strikeHandler gs 
+  pos | elem pos $ drop 1 (gs ^. (gsSnakeL . sTailL))  -> overlapHandler gs 
+  (Cord x y) | x == 1 + fst (gs ^. gsSizeL) || x < 0     -> edgeHandler gs
+  (Cord x y) | y == 1 + snd (gs ^. gsSizeL) || y < 0     -> edgeHandler gs 
   anythingElse -> do  
     let snHead   = gs ^. (gsSnakeL . sHeadL)
         snTail   = gs ^. (gsSnakeL . sTailL)
@@ -34,14 +34,50 @@ foodPosHandler gs = do
   newFoodPos <- liftIO $ genFoodPos gridSize snakeCords
   continue $ gs & (gsSnakeL .~ newSnake).(gsFoodPosL .~ newFoodPos).(gsFoodCountL %~ (+1)).(gsScoreL %~ (+10))
 
-strikeHandler :: GameState -> EventM n (Next GameState)
-strikeHandler gs = do 
-  let lifeCount = gs ^. gsLifeCountL
-      newSnake = Snake (Cord 1 7) [Cord 1 6,Cord 1 5] UP
-  case lifeCount of
-    l | l == 1 -> continue (gs & gsGameStatusL .~ GameOver)
-    _ -> continue $ gs & (gsSnakeL .~ newSnake).(gsLifeCountL %~ pred)
-
+overlapHandler :: GameState -> EventM n (Next GameState)
+overlapHandler gs = case gs ^. gsModeL of
+  Infinite -> do  
+    let snHead   = gs ^. (gsSnakeL . sHeadL)
+        snTail   = gs ^. (gsSnakeL . sTailL)
+        snDir    = gs ^. (gsSnakeL . sDirL)
+        newSHead = getNextCord snHead snDir
+        newSnake = Snake newSHead (init $ snHead:snTail) snDir
+    continue $ gs & gsSnakeL .~ newSnake
+  _ -> do 
+    let lifeCount = gs ^. gsLifeCountL
+        newSnake = Snake (Cord 1 7) [Cord 1 6,Cord 1 5] UP
+    case lifeCount of
+      l | l == 1 -> continue (gs & gsGameStatusL .~ GameOver)
+      _ -> continue $ gs & (gsSnakeL .~ newSnake).(gsLifeCountL %~ pred)
+  
+edgeHandler :: GameState -> EventM n (Next GameState)
+edgeHandler gs = case gs ^. gsModeL of
+  Infinite -> case gs ^. (gsSnakeL . sHeadL) of
+    (Cord x y) | x < 0 -> do 
+      let edgeCord = snd (gs ^. gsSizeL)
+          newSnHead = Cord edgeCord y
+          newSnake = gs ^. gsSnakeL & (sHeadL .~ newSnHead)
+      continue $ gs & gsSnakeL .~ newSnake
+    (Cord x y) | x == 1 + fst (gs ^. gsSizeL) -> do
+      let newSnHead = Cord 0 y
+          newSnake = gs ^. gsSnakeL & (sHeadL .~ newSnHead)
+      continue $ gs & gsSnakeL .~ newSnake
+    (Cord x y) | y < 0 -> do 
+      let edgeCord = fst (gs ^. gsSizeL)
+          newSnHead = Cord x edgeCord
+          newSnake = gs ^. gsSnakeL & (sHeadL .~ newSnHead)
+      continue $ gs & gsSnakeL .~ newSnake
+    (Cord x y) | y == 1 + snd (gs ^. gsSizeL) -> do
+      let newSnHead = Cord x 0 
+          newSnake = gs ^. gsSnakeL & (sHeadL .~ newSnHead)
+      continue $ gs & gsSnakeL .~ newSnake
+  _ -> do 
+    let lifeCount = gs ^. gsLifeCountL
+        newSnake = Snake (Cord 1 7) [Cord 1 6,Cord 1 5] UP
+    case lifeCount of
+      l | l == 1 -> continue (gs & gsGameStatusL .~ GameOver)
+      _ -> continue $ gs & (gsSnakeL .~ newSnake).(gsLifeCountL %~ pred)
+  
 getNextCord :: Cordinate -> DIRECTION -> Cordinate
 getNextCord (Cord x y) dir = case dir of
     UP    -> Cord (x+1) y
@@ -54,7 +90,6 @@ getNextDir UP = RIGHT
 getNextDir DOWN = LEFT
 getNextDir RIGHT = UP
 getNextDir LEFT = DOWN
-
 
 turn :: DIRECTION -> GameState -> GameState 
 turn dir gs = gs & gsSnakeL %~ setSnakeDir dir'
