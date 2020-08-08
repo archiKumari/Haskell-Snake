@@ -18,6 +18,7 @@ import Types
 renderGame :: GameState -> Widget ()
 renderGame gs = case gs ^. gsGameStatusL of
   Initial  -> drawStartGame gs
+  ModeSelect -> drawModeSelect gs
   Playing  -> drawGameObject gs
   Paused -> drawGameObject gs
   GameOver -> drawGameOver gs
@@ -38,6 +39,22 @@ drawStartGame gs = center $ Widget Fixed Fixed $ do
         darkC = charFill (getAttr "darkGreen") ' ' 2 1  
         bgColor = getAttr "bgLightGreen"
 
+drawModeSelect :: GameState -> Widget ()
+drawModeSelect gs = center $ Widget Fixed Fixed $ do
+  return $ emptyResult &
+    imageL .~ initImg
+  where initImg = vertCat [border,titleImg,border,optionsImg,border]
+        border = charFill bgColor ' ' 40 1
+        titleImg = string bgColor "       ***** Select Game Mode *****     "
+        optionsImg = vertCat [normalImg,border,infiniteImg]
+        normalImg = horizCat [charFill bgColor ' ' 2 1,sKey,string bgColor " Normal Mode                       "]
+        sKey = string (getAttr "key") " 1 "
+        infiniteImg = horizCat [charFill bgColor ' ' 2 1,mKey,string bgColor " Infinite Mode                     "]
+        mKey = string (getAttr "key") " 2 "
+        lightC = charFill (getAttr "lightGreen") ' ' 2 1
+        darkC = charFill (getAttr "darkGreen") ' ' 2 1  
+        bgColor = getAttr "bgLightGreen"
+        
 drawGameObject :: GameState -> Widget ()
 drawGameObject gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
@@ -51,10 +68,11 @@ mkGameImg gs = gameImg
 
 mkHorizBorder :: Image -> Image
 mkHorizBorder img = vertCat [border,img,border]
-  where border = charFill brColor ' ' width 1
-        width = imageWidth img
-        brColor = getAttr "bgDarkGreen"
-
+  where
+    border = charFill brColor ' ' width 1
+    width = imageWidth img
+    brColor = getAttr "bgDarkGreen"
+        
 mkRowImg :: GameState -> [Cordinate] -> Image
 mkRowImg gs cords = horizCat [border,rowImg,border]
   where rowImg = horizCat $ fmap (mkCellImg gs) cords
@@ -115,11 +133,13 @@ drawGameOver gs = center $ Widget Fixed Fixed $ do
       scoreImg = horizCat [charFill bgColor '🌟' 1 1,string bgColor (" " ++ show score),charFill bgColor ' ' 2 1]
       foodCount = gs ^. gsFoodCountL
       score = gs ^. gsScoreL
-      msgImg = vertCat [newGameMsg,border,quitMsg]
-      newGameMsg = horizCat [charFill bgColor ' ' 2 1,enterKeyImg,string bgColor "  Play Again!                  "]
-      quitMsg = horizCat [charFill bgColor ' ' 2 1,quitKeyImg,string bgColor "  Quit The Game                    "]
+      msgImg = vertCat [newGameImg,border,changeModeImg,border,quitImg]
+      newGameImg = horizCat [charFill bgColor ' ' 2 1,enterKeyImg,string bgColor "  Play Again!                  "]
+      quitImg = horizCat [charFill bgColor ' ' 2 1,quitKeyImg,string bgColor "  Quit The Game                    "]
+      changeModeImg = horizCat [charFill bgColor ' ' 2 1,modeKeyImg,string bgColor "    Change Mode                    "]
       enterKeyImg = string (getAttr "key") " Enter "
       quitKeyImg = string (getAttr "key") " Q "
+      modeKeyImg = string (getAttr "key") " M "
       bgColor = getAttr "bgLightGreen"
         
 getAttr :: String ->  Attr
@@ -129,6 +149,7 @@ getAttr "heart" = flip V.withStyle V.bold $ V.red `on` rgbColor 13 168 10
 getAttr "bgDarkGreen" = V.black `on` rgbColor 13 168 10
 getAttr "bgLightGreen" = flip V.withStyle V.bold $ V.black `on` rgbColor 55 209 52
 getAttr "key" = flip V.withStyle V.bold $ V.black `on` rgbColor 222 221 153
+getAttr _ = V.black `on` V.black
 
 -- | Map of Attributes to be used when rendering
 theMap::A.AttrMap

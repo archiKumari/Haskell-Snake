@@ -37,7 +37,7 @@ data DIRECTION = UP | DOWN | RIGHT | LEFT
 data Mode = Normal | Infinite | Obstacle
   deriving (Show,Eq,Ord)
 
-data GameStatus = Initial | Playing | Paused | GameOver
+data GameStatus = Initial | ModeSelect | Playing | Paused | GameOver
   deriving (Show,Eq,Ord)
 
 type GameSize = (Int,Int)
