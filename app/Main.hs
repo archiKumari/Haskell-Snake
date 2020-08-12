@@ -11,11 +11,13 @@ import Types
 import UI
 import GameControls
 
+-- Main function
 main :: IO ()
 main = do
   runApp
   return ()
 
+-- | App function for specifying different functions for different features of the Game
 app :: App GameState () ()
 app = App
   { appDraw         = pure . renderGame 
@@ -25,6 +27,7 @@ app = App
   , appAttrMap      = const theMap
   }
 
+-- | Function to initialize main function with initial GameState to run the Snake Game
 runApp :: IO GameState
 runApp = do 
   let builder = mkVty defaultConfig
@@ -46,6 +49,7 @@ runApp = do
        Normal
        Initial 
 
+-- | Function to write AppEvent () in the buffer after the specified time
 tick :: BChan () -> IO ()
 tick bChan = do
   threadDelay 100000

@@ -8,6 +8,7 @@ import Brick.Types
 import Brick
 import Control.Monad.IO.Class
 
+-- | Takes GameState and returns next GameState according to the movement of Snake in the Game
 movementHandler :: GameState -> EventM n (Next GameState)
 movementHandler gs = case gs ^. (gsSnakeL . sHeadL) of
   pos | pos == gs ^. gsFoodPosL                       -> foodPosHandler gs
@@ -22,6 +23,8 @@ movementHandler gs = case gs ^. (gsSnakeL . sHeadL) of
         newSnake = Snake newSHead (init $ snHead:snTail) snDir
     continue $ gs & gsSnakeL .~ newSnake 
 
+-- | Takes GameState and returns next GameState with new food position
+-- when Snake reaches to the Food
 foodPosHandler :: GameState -> EventM n (Next GameState)
 foodPosHandler gs = do
   let snHead      = gs ^. (gsSnakeL . sHeadL)
@@ -34,6 +37,8 @@ foodPosHandler gs = do
   newFoodPos <- liftIO $ genFoodPos gridSize snakeCords
   continue $ gs & (gsSnakeL .~ newSnake).(gsFoodPosL .~ newFoodPos).(gsFoodCountL %~ (+1)).(gsScoreL %~ (+10))
 
+-- | Takes GameState and returns next GameState according to Game Mode 
+-- when the Snake overlaps itself
 overlapHandler :: GameState -> EventM n (Next GameState)
 overlapHandler gs = case gs ^. gsModeL of
   Infinite -> do  
@@ -50,6 +55,8 @@ overlapHandler gs = case gs ^. gsModeL of
       l | l == 1 -> continue (gs & gsGameStatusL .~ GameOver)
       _ -> continue $ gs & (gsSnakeL .~ newSnake).(gsLifeCountL %~ pred)
   
+-- | Takes GameState and returns next GameState according to Game Mode
+-- when the Snake strikes the edge of game grid
 edgeHandler :: GameState -> EventM n (Next GameState)
 edgeHandler gs = case gs ^. gsModeL of
   Infinite -> case gs ^. (gsSnakeL . sHeadL) of
@@ -78,6 +85,8 @@ edgeHandler gs = case gs ^. gsModeL of
       l | l == 1 -> continue (gs & gsGameStatusL .~ GameOver)
       _ -> continue $ gs & (gsSnakeL .~ newSnake).(gsLifeCountL %~ pred)
   
+-- | Takes a Cordinate and current direction of Snake and 
+-- returns next cordinate for the snake
 getNextCord :: Cordinate -> DIRECTION -> Cordinate
 getNextCord (Cord x y) dir = case dir of
     UP    -> Cord (x+1) y
@@ -85,12 +94,14 @@ getNextCord (Cord x y) dir = case dir of
     DOWN  -> Cord (x-1) y
     LEFT  -> Cord x (y-1)
 
+-- | Takes a direction and returns next clockwise direction
 getNextDir :: DIRECTION -> DIRECTION
 getNextDir UP = RIGHT
 getNextDir DOWN = LEFT
 getNextDir RIGHT = UP
 getNextDir LEFT = DOWN
 
+-- | Takes a direction and current GameState and returns new GameState with changed direction
 turn :: DIRECTION -> GameState -> GameState 
 turn dir gs = gs & gsSnakeL %~ setSnakeDir dir'
   where
@@ -100,6 +111,7 @@ turn dir gs = gs & gsSnakeL %~ setSnakeDir dir'
         then oldDir
         else dir   
 
+-- | Takes two directions and checks if both directions are opposite 
 isOppositeDir :: DIRECTION -> DIRECTION -> Bool
 isOppositeDir UP    DOWN  = True        
 isOppositeDir DOWN  UP    = True        
@@ -107,9 +119,12 @@ isOppositeDir LEFT  RIGHT = True
 isOppositeDir RIGHT LEFT  = True        
 isOppositeDir _     _     = False        
 
+-- | Takes a direction and a snake and returns a new snake with changed direction
 setSnakeDir :: DIRECTION -> Snake -> Snake
 setSnakeDir d s = s & sDirL .~ d
 
+-- | Takes GameSize and cordinates of Snake and returns a cordinate
+-- for new food position  
 genFoodPos :: GameSize -> [Cordinate] -> IO Cordinate
 genFoodPos (row,col) snakeCords = do
   x <- generate $ choose (0,row-1)
