@@ -21,19 +21,19 @@ commandHandler gs event = case gs ^. gsGameStatusL of
   Playing  -> playingHandler  gs event
   GameOver -> gameOverHandler gs event
   
--- | Handler for Initial Game Widget
+-- | Handler for Game Start Event
 initialHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 initialHandler gs (VtyEvent (EvKey (KChar 's') [])) = continue $ gs & (gsGameStatusL .~ Playing)
 initialHandler gs (VtyEvent (EvKey (KChar 'm') [])) = continue $ gs & (gsGameStatusL .~ ModeSelect)
 initialHandler gs _ = continue gs
 
--- | Handler for Mode Select Widget
+-- | Handler for Mode Select Event
 modeSelectHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 modeSelectHandler gs (VtyEvent (EvKey (KChar '1') [])) = continue normalModeGS
 modeSelectHandler gs (VtyEvent (EvKey (KChar '2') [])) = continue infiniteModeGS
 modeSelectHandler gs _ = continue gs
 
--- | Handler for Game Play Widget
+-- | Handler for Game Play Event
 playingHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 playingHandler gs (VtyEvent (EvKey KUp [])) =    continue $ turn UP gs
 playingHandler gs (VtyEvent (EvKey KRight [])) = continue $ turn RIGHT gs 
@@ -43,12 +43,12 @@ playingHandler gs (VtyEvent (EvKey (KChar ' ') [])) = continue $ gs & (gsGameSta
 playingHandler gs (AppEvent ()) = movementHandler gs
 playingHandler gs _ = continue gs
 
--- | Handler for Paused Game Widget
+-- | Handler for Paused Game Event
 pausedHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 pausedHandler gs (VtyEvent (EvKey (KChar ' ') [])) = continue $ gs & (gsGameStatusL .~ Playing)
 pausedHandler gs _ = continue gs
 
--- | Handler for Game Over Widget
+-- | Handler for Game Over Event
 gameOverHandler :: GameState -> BrickEvent t () -> EventM n (Next GameState)
 gameOverHandler gs (VtyEvent (EvKey KEnter [])) = continue $ initialGS & (gsModeL .~ (gs ^. gsModeL))
 gameOverHandler gs (VtyEvent (EvKey (KChar 'm') [])) = continue $ initialGS & (gsGameStatusL .~ ModeSelect)
