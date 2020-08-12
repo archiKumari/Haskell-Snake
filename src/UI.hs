@@ -15,6 +15,7 @@ import Lens.Micro   ((^.), (&), (.~), (%~))
 
 import Types
 
+-- | Takes GameState and renders the required widget
 renderGame :: GameState -> Widget ()
 renderGame gs = case gs ^. gsGameStatusL of
   Initial  -> drawStartGame gs
@@ -23,6 +24,7 @@ renderGame gs = case gs ^. gsGameStatusL of
   Paused -> drawGameObject gs
   GameOver -> drawGameOver gs
 
+-- | Takes GameState and returns the widget for Start Game
 drawStartGame :: GameState -> Widget ()
 drawStartGame gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
@@ -39,6 +41,7 @@ drawStartGame gs = center $ Widget Fixed Fixed $ do
         darkC = charFill (getAttr "darkGreen") ' ' 2 1  
         bgColor = getAttr "bgLightGreen"
 
+-- | Takes GameState and returns the widget for Mode Selection
 drawModeSelect :: GameState -> Widget ()
 drawModeSelect gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
@@ -54,31 +57,36 @@ drawModeSelect gs = center $ Widget Fixed Fixed $ do
         lightC = charFill (getAttr "lightGreen") ' ' 2 1
         darkC = charFill (getAttr "darkGreen") ' ' 2 1  
         bgColor = getAttr "bgLightGreen"
-        
+
+-- | Takes GameState and returns the Game Widget
 drawGameObject :: GameState -> Widget ()
 drawGameObject gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
     imageL .~ gameImg 
       where gameImg = vertCat [mkScoreImg gs,mkGameImg gs]
-            
+
+-- | Takes GameState and returns the game image accordingly 
 mkGameImg :: GameState -> Image
 mkGameImg gs = gameImg
       where gameImg = mkHorizBorder.vertCat $ fmap (mkRowImg gs) rowMap
             rowMap = mkRowMap (gsSize gs)
 
+-- | Takes game image and returns the game image with horizontal border
 mkHorizBorder :: Image -> Image
 mkHorizBorder img = vertCat [border,img,border]
   where
     border = charFill brColor ' ' width 1
     width = imageWidth img
     brColor = getAttr "bgDarkGreen"
-        
+
+-- | Takes GameState and returns game image with vertical border
 mkRowImg :: GameState -> [Cordinate] -> Image
 mkRowImg gs cords = horizCat [border,rowImg,border]
   where rowImg = horizCat $ fmap (mkCellImg gs) cords
         border = charFill brColor ' ' 2 1
         brColor = getAttr "bgDarkGreen"
 
+-- | Takes GameState and cordinate and returns cell image of that cordinate accordingly
 mkCellImg :: GameState -> Cordinate -> Image
 mkCellImg gs cord
   | cord == gsFoodPos gs = horizCat [charFill bgColor2 '🍉' 1 1]
@@ -93,10 +101,12 @@ mkCellImg gs cord
     shColor = flip V.withStyle V.bold $ V.red `on` rgbColor 55 209 52
     stColor = flip V.withStyle V.bold $ V.black `on` rgbColor 55 209 52
 
+-- | Takes Game Size and returns list of rows of cordinates
 mkRowMap :: GameSize -> [[Cordinate]]
 mkRowMap (row,col) | row < 0 || col < 0 = []
 mkRowMap (row,col) = [Cord row n | n <- [0..col]] : mkRowMap (row-1,col) 
 
+-- | Takes GameState and returns the image of Game Data accordingly
 mkScoreImg :: GameState -> Image
 mkScoreImg gs = scoreImg
   where scoreImg  = vertCat [imgLine1,imgLine2]
@@ -119,6 +129,7 @@ mkScoreImg gs = scoreImg
         lColor = flip V.withStyle V.bold $ V.red `on` rgbColor 13 168 10
         lColorDim = flip V.withStyle V.dim $ V.red `on` rgbColor 13 168 10        
 
+-- | Takes GameState and returns the widget for Game Over 
 drawGameOver :: GameState ->  Widget ()
 drawGameOver gs = center $ Widget Fixed Fixed $ do
   return $ emptyResult &
@@ -141,7 +152,8 @@ drawGameOver gs = center $ Widget Fixed Fixed $ do
       quitKeyImg = string (getAttr "key") " Q "
       modeKeyImg = string (getAttr "key") " M "
       bgColor = getAttr "bgLightGreen"
-        
+
+-- | Takes a string and returns an attribute accordingly 
 getAttr :: String ->  Attr
 getAttr "darkGreen" = V.black `on` V.rgbColor 55 209 52
 getAttr "lightGreen" = V.black `on` V.rgbColor 92 230 90
